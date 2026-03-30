@@ -37,9 +37,25 @@
             android:textStyle="bold"
             android:textColor="#154A0C"
             android:layout_marginBottom="25dp"/>
-
+        <!-- Phone Number Input -->
+<com.google.android.material.textfield.TextInputLayout
+    android:id="@+id/inputPhone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:boxStrokeColor="#2D6F25"
+    app:hintTextColor="#2D6F25"
+    android:hint="Phone Number"
+    app:prefixText="+91 "
+    android:layout_marginBottom="15dp">
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/text_input_phone_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="phone"
+        android:maxLength="10" />
+</com.google.android.material.textfield.TextInputLayout>
         <!-- Email Input -->
-        <com.google.android.material.textfield.TextInputLayout
+        <!-- <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/inputEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -53,10 +69,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress" />
-        </com.google.android.material.textfield.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout> -->
 
         <!-- Password Input -->
-        <com.google.android.material.textfield.TextInputLayout
+        <!-- <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/inputPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -71,14 +87,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword" />
-        </com.google.android.material.textfield.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout> -->
 
         <!-- Login Button -->
         <Button
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="Login"
+            android:text="Send OTP"
             android:textColor="#FFFFFF"
             android:background="@drawable/green_button"
             app:backgroundTint="@null"

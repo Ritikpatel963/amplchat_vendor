@@ -29,8 +29,7 @@ public class RealtimeSocketManager {
     public static synchronized void connect(
             SessionManager session,
             int userId,
-            SocketListener listener
-    ) {
+            SocketListener listener) {
         if (pusher != null && currentUserId == userId) {
             Log.d(TAG, "Already connected");
             return;
@@ -40,7 +39,7 @@ public class RealtimeSocketManager {
 
         currentUserId = userId;
 
-        String authUrl = "https://amplchat.agromarket.co.in/api/broadcasting/auth";
+        String authUrl = "https://uatamplchat.agromarket.co.in/api/broadcasting/auth";
 
         Map<String, String> headers = new HashMap<>();
         headers.put("Authorization", "Bearer " + session.getToken());
@@ -52,7 +51,7 @@ public class RealtimeSocketManager {
         PusherOptions options = new PusherOptions()
                 .setAuthorizer(authorizer)
                 .setUseTLS(true)
-                .setHost("amplchat.agromarket.co.in")
+                .setHost("uatamplchat.agromarket.co.in")
                 .setWsPort(443)
                 .setWssPort(443)
                 .setEncrypted(true)
@@ -61,8 +60,7 @@ public class RealtimeSocketManager {
 
         pusher = new Pusher(
                 "lcwlcvigxtbjksfcedjh", // REVERB_APP_KEY
-                options
-        );
+                options);
 
         /* ================= CONNECTION LISTENER ================= */
         pusher.getConnection().bind(ConnectionState.ALL, new ConnectionEventListener() {
@@ -87,8 +85,7 @@ public class RealtimeSocketManager {
     private static void subscribeChatChannel(int userId, SocketListener listener) {
         chatChannel = pusher.subscribePrivate(
                 "private-chat-channel." + userId,
-                baseChannelListener()
-        );
+                baseChannelListener());
 
         chatChannel.bind("message.sent", baseEventListener(listener));
     }
@@ -97,8 +94,7 @@ public class RealtimeSocketManager {
     private static void subscribeCallChannel(int userId, SocketListener listener) {
         callChannel = pusher.subscribePrivate(
                 "private-call-channel." + userId,
-                baseChannelListener()
-        );
+                baseChannelListener());
 
         callChannel.bind("incoming_call", baseEventListener(listener));
 
@@ -165,8 +161,13 @@ public class RealtimeSocketManager {
                 }
             }
 
-            @Override public void onSubscriptionSucceeded(String channelName) {}
-            @Override public void onAuthenticationFailure(String message, Exception e) {}
+            @Override
+            public void onSubscriptionSucceeded(String channelName) {
+            }
+
+            @Override
+            public void onAuthenticationFailure(String message, Exception e) {
+            }
         };
     }
 
@@ -182,7 +183,8 @@ public class RealtimeSocketManager {
                 }
 
                 pusher.disconnect();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
             pusher = null;
             chatChannel = null;
@@ -198,8 +200,12 @@ public class RealtimeSocketManager {
         void onMessageReceived(String data);
 
         void onIncomingCall(String data);
+
         void onCallAccepted(String data);
+
         void onCallRejected(String data);
+
         void onCallEnded(String data);
     }
+
 }

@@ -5,6 +5,7 @@ public class LoginResponse {
     public boolean status;
     public String message;
     public String token;
+    public String approval_status; // ✅ ADDED — "pending" | "approved" | "rejected"
     public User user;
     public int agent_id;
 

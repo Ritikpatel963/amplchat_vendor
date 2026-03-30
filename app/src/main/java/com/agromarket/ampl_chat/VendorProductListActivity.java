@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.Toast;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -47,6 +48,8 @@ public class VendorProductListActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private Toolbar toolbar;
     private RecyclerView productRecycler;
+    private Button btnAddProduct;// ad change
+    private boolean isNearExpiryFilter = false; // ad
 
     private VendorProductAdapter productAdapter;
     private List<VendorProduct> productList = new ArrayList<>();
@@ -58,11 +61,20 @@ public class VendorProductListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vendor_product_list);
-
+        // ad start
+        isNearExpiryFilter = getIntent().getBooleanExtra("FILTER_NEAR_EXPIRY", false);
+        if (isNearExpiryFilter && getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Near Expiry Products");
+        }
+        // ad close
         session = new SessionManager(this);
         apiService = ApiClient.getClient().create(ApiService.class);
 
         initViews();
+        btnAddProduct.setOnClickListener(v -> {
+            startActivity(new Intent(this, VendorAddProductActivity.class));
+        });// ad chnage
+
         setupWindowInsets();
         setupToolbar();
         setupNavigationDrawer();
@@ -76,6 +88,8 @@ public class VendorProductListActivity extends AppCompatActivity {
         navigationView = findViewById(R.id.navigationView);
         toolbar = findViewById(R.id.toolbar);
         productRecycler = findViewById(R.id.productRecycler);
+        btnAddProduct = findViewById(R.id.btnAddProduct);// ad chnage
+
     }
 
     private void setupWindowInsets() {
@@ -99,8 +113,7 @@ public class VendorProductListActivity extends AppCompatActivity {
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
                 R.string.navigation_drawer_open,
-                R.string.navigation_drawer_close
-        );
+                R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
@@ -130,12 +143,12 @@ public class VendorProductListActivity extends AppCompatActivity {
             goToLogin();
             return;
         }
-
-        apiService.getVendorProducts("Bearer " + token)
+        Integer nearExpiryQuery = isNearExpiryFilter ? 1 : null;// ad code
+        apiService.getVendorProducts("Bearer " + token, nearExpiryQuery)
                 .enqueue(new Callback<VendorProductListResponse>() {
                     @Override
                     public void onResponse(@NonNull Call<VendorProductListResponse> call,
-                                           @NonNull Response<VendorProductListResponse> response) {
+                            @NonNull Response<VendorProductListResponse> response) {
 
                         if (response.isSuccessful() && response.body() != null && response.body().status) {
                             productList.clear();
@@ -143,9 +156,10 @@ public class VendorProductListActivity extends AppCompatActivity {
                             for (VendorProductListResponse.VendorProduct product : response.body().products) {
                                 VendorProduct vendorProduct = new VendorProduct(
                                         product.product_name,
-                                        product.brand_name != null ? "Brand: "+product.brand_name : "N/A",
-                                        product.product_expiry_formatted != null ? "Expiry Date: "+product.product_expiry_formatted : "N/A"
-                                );
+                                        product.brand_name != null ? "Brand: " + product.brand_name : "N/A",
+                                        product.product_expiry_formatted != null
+                                                ? "Expiry Date: " + product.product_expiry_formatted
+                                                : "N/A");
                                 vendorProduct.setId(product.id);
                                 vendorProduct.setProductRate(product.product_rate);
                                 vendorProduct.setQuantity(product.quantity);
@@ -164,7 +178,7 @@ public class VendorProductListActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(@NonNull Call<VendorProductListResponse> call,
-                                          @NonNull Throwable t) {
+                            @NonNull Throwable t) {
                         Toast.makeText(VendorProductListActivity.this,
                                 "Network error: " + t.getMessage(),
                                 Toast.LENGTH_SHORT).show();
@@ -209,7 +223,7 @@ public class VendorProductListActivity extends AppCompatActivity {
                 .enqueue(new Callback<VendorProductResponse>() {
                     @Override
                     public void onResponse(@NonNull Call<VendorProductResponse> call,
-                                           @NonNull Response<VendorProductResponse> response) {
+                            @NonNull Response<VendorProductResponse> response) {
                         if (response.isSuccessful()) {
                             productList.remove(position);
                             productAdapter.notifyItemRemoved(position);
@@ -225,7 +239,7 @@ public class VendorProductListActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(@NonNull Call<VendorProductResponse> call,
-                                          @NonNull Throwable t) {
+                            @NonNull Throwable t) {
                         Toast.makeText(VendorProductListActivity.this,
                                 "Error: " + t.getMessage(),
                                 Toast.LENGTH_SHORT).show();

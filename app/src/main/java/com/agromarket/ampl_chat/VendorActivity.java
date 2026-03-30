@@ -112,6 +112,21 @@ public class VendorActivity extends AppCompatActivity {
         View cardActiveProduct = findViewById(R.id.cardActiveProduct);
         View cardNearExpiry = findViewById(R.id.cardNearExpiry);
 
+        // ad start
+        cardNearExpiry.setOnClickListener(v -> {
+            Intent intent = new Intent(this, VendorProductListActivity.class);
+            intent.putExtra("FILTER_NEAR_EXPIRY", true); // Send the filter flag
+            startActivity(intent);
+        });
+        // ad close
+        // adarsh chnage
+        View.OnClickListener openProductList = v -> {
+            startActivity(new Intent(this, VendorProductListActivity.class));
+        };
+        cardTotalProduct.setOnClickListener(openProductList);
+        cardActiveProduct.setOnClickListener(openProductList);
+
+        //
         tvTotalProductValue = cardTotalProduct.findViewById(R.id.tvMetricValue);
         tvActiveProductValue = cardActiveProduct.findViewById(R.id.tvMetricValue);
         tvNearExpiryValue = cardNearExpiry.findViewById(R.id.tvMetricValue);
@@ -147,8 +162,7 @@ public class VendorActivity extends AppCompatActivity {
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
                 R.string.navigation_drawer_open,
-                R.string.navigation_drawer_close
-        );
+                R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
@@ -181,8 +195,7 @@ public class VendorActivity extends AppCompatActivity {
                 android.R.color.holo_blue_bright,
                 android.R.color.holo_green_light,
                 android.R.color.holo_orange_light,
-                android.R.color.holo_red_light
-        );
+                android.R.color.holo_red_light);
     }
 
     private void loadMetricsAndProducts() {
@@ -197,8 +210,9 @@ public class VendorActivity extends AppCompatActivity {
                 .enqueue(new Callback<VendorProductMetricsResponse>() {
                     @Override
                     public void onResponse(@NonNull Call<VendorProductMetricsResponse> call,
-                                           @NonNull Response<VendorProductMetricsResponse> response) {
-                        if (isFinishing()) return;
+                            @NonNull Response<VendorProductMetricsResponse> response) {
+                        if (isFinishing())
+                            return;
 
                         swipeRefresh.setRefreshing(false);
 
@@ -225,7 +239,7 @@ public class VendorActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(@NonNull Call<VendorProductMetricsResponse> call,
-                                          @NonNull Throwable t) {
+                            @NonNull Throwable t) {
                         if (!isFinishing()) {
                             swipeRefresh.setRefreshing(false);
                             Toast.makeText(VendorActivity.this,
@@ -249,9 +263,9 @@ public class VendorActivity extends AppCompatActivity {
             for (VendorProductMetricsResponse.RecentProduct product : recentProducts) {
                 VendorProduct vendorProduct = new VendorProduct(
                         product.product_name,
-                        product.brand_name != null ? "Brand: "+product.brand_name : "N/A",
-                        product.product_expiry_formatted != null ? "Expiry Date: "+product.product_expiry_formatted : "N/A"
-                );
+                        product.brand_name != null ? "Brand: " + product.brand_name : "N/A",
+                        product.product_expiry_formatted != null ? "Expiry Date: " + product.product_expiry_formatted
+                                : "N/A");
                 vendorProduct.setId(product.id);
                 vendorProduct.setProductRate(product.product_rate);
                 vendorProduct.setQuantity(product.quantity);
@@ -306,7 +320,7 @@ public class VendorActivity extends AppCompatActivity {
                 .enqueue(new Callback<VendorProductResponse>() {
                     @Override
                     public void onResponse(@NonNull Call<VendorProductResponse> call,
-                                           @NonNull Response<VendorProductResponse> response) {
+                            @NonNull Response<VendorProductResponse> response) {
                         if (response.isSuccessful()) {
                             productList.remove(position);
                             productAdapter.notifyItemRemoved(position);
@@ -323,7 +337,7 @@ public class VendorActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(@NonNull Call<VendorProductResponse> call,
-                                          @NonNull Throwable t) {
+                            @NonNull Throwable t) {
                         Toast.makeText(VendorActivity.this,
                                 "Error: " + t.getMessage(),
                                 Toast.LENGTH_SHORT).show();

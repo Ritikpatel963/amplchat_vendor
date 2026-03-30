@@ -28,7 +28,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.agromarket.ampl_chat.models.api.VendorProductCreateResponse;
+import com.agromarket.ampl_chat.models.api.VendorProductResponse;//ad change 
+
 import com.agromarket.ampl_chat.utils.ApiClient;
+
 import com.agromarket.ampl_chat.utils.ApiService;
 import com.agromarket.ampl_chat.utils.SessionManager;
 import com.google.android.material.navigation.NavigationView;
@@ -82,6 +85,12 @@ public class VendorAddProductActivity extends AppCompatActivity {
     private List<Uri> selectedImageUris = new ArrayList<>();
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
+    // ad change start
+
+    private boolean isEditMode = false;
+    private int productId = -1;
+
+    // ad change close
     private SessionManager session;
     private ApiService apiService;
     private ProgressDialog progressDialog;
@@ -97,7 +106,11 @@ public class VendorAddProductActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vendor_add_product);
+        // ad change start
+        isEditMode = getIntent().getBooleanExtra("EDIT_MODE", false);
+        productId = getIntent().getIntExtra("PRODUCT_ID", -1);
 
+        // ad chnage close
         // Initialize services
         session = new SessionManager(this);
         apiService = ApiClient.getClient().create(ApiService.class);
@@ -109,6 +122,17 @@ public class VendorAddProductActivity extends AppCompatActivity {
         setupDropdowns();
         setupImagePicker();
         setupClickListeners();
+
+        // ad chnage start
+        if (isEditMode && productId != -1) {
+            loadProductDetails();
+            btnAddProduct.setText("Update Product");
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle("Edit Product");
+            }
+        }
+        // ad chnage close
+
     }
 
     private void initViews() {
@@ -156,8 +180,7 @@ public class VendorAddProductActivity extends AppCompatActivity {
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
                 R.string.navigation_drawer_open,
-                R.string.navigation_drawer_close
-        );
+                R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
@@ -181,14 +204,14 @@ public class VendorAddProductActivity extends AppCompatActivity {
 
     private void setupDropdowns() {
         // Product Categories
-        String[] categories = {"Grains", "Vegetables", "Fruits", "Seeds", "Fertilizers"};
+        String[] categories = { "Grains", "Vegetables", "Fruits", "Seeds", "Fertilizers" };
         ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, categories);
         productCategoryInput.setAdapter(categoryAdapter);
 
         // Product Weights (unit_type and unit_size combined)
-        String[] weights = {"1 Kg", "5 Kg", "10 Kg", "25 Kg", "50 Kg", "100 Kg",
-                "1 Liter", "5 Liter", "10 Liter", "20 Liter"};
+        String[] weights = { "1 Kg", "5 Kg", "10 Kg", "25 Kg", "50 Kg", "100 Kg",
+                "1 Liter", "5 Liter", "10 Liter", "20 Liter" };
         ArrayAdapter<String> weightAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, weights);
         productWeightInput.setAdapter(weightAdapter);
@@ -209,8 +232,7 @@ public class VendorAddProductActivity extends AppCompatActivity {
                             uploadIcon.setVisibility(View.GONE);
                         }
                     }
-                }
-        );
+                });
     }
 
     private void setupClickListeners() {
@@ -248,8 +270,7 @@ public class VendorAddProductActivity extends AppCompatActivity {
                             selectedYear, selectedMonth + 1, selectedDay);
                     productExpiryInput.setText(date);
                 },
-                year, month, day
-        );
+                year, month, day);
 
         // Set minimum date to today
         datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
@@ -300,18 +321,29 @@ public class VendorAddProductActivity extends AppCompatActivity {
         String unitSize = weightParts[0];
         String unitType = weightParts[1];
 
-        addProductToServer(productName, categoryId, brandName, unitType, unitSize,
-                rate, qty, expiry);
+        // ad chnage start
+        if (isEditMode) {
+            updateProductOnServer(productName, categoryId, brandName, unitType, unitSize, rate, qty, expiry);
+        } else {
+            addProductToServer(productName, categoryId, brandName, unitType, unitSize, rate, qty, expiry);
+        }
+        // ad change close
     }
 
     private int getCategoryId(String categoryName) {
         switch (categoryName) {
-            case "Grains": return CATEGORY_GRAINS;
-            case "Vegetables": return CATEGORY_VEGETABLES;
-            case "Fruits": return CATEGORY_FRUITS;
-            case "Seeds": return CATEGORY_SEEDS;
-            case "Fertilizers": return CATEGORY_FERTILIZERS;
-            default: return CATEGORY_GRAINS;
+            case "Grains":
+                return CATEGORY_GRAINS;
+            case "Vegetables":
+                return CATEGORY_VEGETABLES;
+            case "Fruits":
+                return CATEGORY_FRUITS;
+            case "Seeds":
+                return CATEGORY_SEEDS;
+            case "Fertilizers":
+                return CATEGORY_FERTILIZERS;
+            default:
+                return CATEGORY_GRAINS;
         }
     }
 
@@ -319,14 +351,14 @@ public class VendorAddProductActivity extends AppCompatActivity {
         // Example: "5 Kg" -> ["5", "Kg"]
         String[] parts = weight.split(" ");
         if (parts.length == 2) {
-            return new String[]{parts[0], parts[1]};
+            return new String[] { parts[0], parts[1] };
         }
-        return new String[]{"1", "Kg"};
+        return new String[] { "1", "Kg" };
     }
 
     private void addProductToServer(String productName, int categoryId, String brandName,
-                                    String unitType, String unitSize, String rate,
-                                    String qty, String expiry) {
+            String unitType, String unitSize, String rate,
+            String qty, String expiry) {
         String token = session.getToken();
         if (token == null) {
             Toast.makeText(this, "Session expired. Please login again.", Toast.LENGTH_SHORT).show();
@@ -362,44 +394,104 @@ public class VendorAddProductActivity extends AppCompatActivity {
                 rateBody,
                 expiryBody,
                 qtyBody,
-                imageParts
-        ).enqueue(new Callback<VendorProductCreateResponse>() {
-            @Override
-            public void onResponse(@NonNull Call<VendorProductCreateResponse> call,
-                                   @NonNull Response<VendorProductCreateResponse> response) {
-                progressDialog.dismiss();
+                imageParts).enqueue(new Callback<VendorProductCreateResponse>() {
+                    @Override
+                    public void onResponse(@NonNull Call<VendorProductCreateResponse> call,
+                            @NonNull Response<VendorProductCreateResponse> response) {
+                        progressDialog.dismiss();
 
-                if (response.isSuccessful() && response.body() != null) {
-                    VendorProductCreateResponse data = response.body();
+                        if (response.isSuccessful() && response.body() != null) {
+                            VendorProductCreateResponse data = response.body();
 
-                    if (data.status) {
-                        Toast.makeText(VendorAddProductActivity.this,
-                                data.message, Toast.LENGTH_SHORT).show();
+                            if (data.status) {
+                                Toast.makeText(VendorAddProductActivity.this,
+                                        data.message, Toast.LENGTH_SHORT).show();
 
-                        // Navigate back to dashboard
-                        Intent intent = new Intent(VendorAddProductActivity.this, VendorActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        Toast.makeText(VendorAddProductActivity.this,
-                                "Failed to add product", Toast.LENGTH_SHORT).show();
+                                // Navigate back to dashboard
+                                Intent intent = new Intent(VendorAddProductActivity.this, VendorActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(VendorAddProductActivity.this,
+                                        "Failed to add product", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(VendorAddProductActivity.this,
+                                    "Error: " + response.code(), Toast.LENGTH_SHORT).show();
+                        }
                     }
-                } else {
-                    Toast.makeText(VendorAddProductActivity.this,
-                            "Error: " + response.code(), Toast.LENGTH_SHORT).show();
-                }
-            }
 
-            @Override
-            public void onFailure(@NonNull Call<VendorProductCreateResponse> call,
-                                  @NonNull Throwable t) {
-                progressDialog.dismiss();
-                Toast.makeText(VendorAddProductActivity.this,
-                        "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                    @Override
+                    public void onFailure(@NonNull Call<VendorProductCreateResponse> call,
+                            @NonNull Throwable t) {
+                        progressDialog.dismiss();
+                        Toast.makeText(VendorAddProductActivity.this,
+                                "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
+
+    // ad change start
+    private void updateProductOnServer(String productName, int categoryId, String brandName,
+            String unitType, String unitSize, String rate,
+            String qty, String expiry) {
+        String token = session.getToken();
+        progressDialog.setMessage("Updating product...");
+        progressDialog.show();
+
+        // Create RequestBody instances
+        RequestBody methodBody = RequestBody.create(MediaType.parse("text/plain"), "PUT");
+        RequestBody nameBody = RequestBody.create(MediaType.parse("text/plain"), productName);
+        RequestBody categoryBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(categoryId));
+        RequestBody brandBody = RequestBody.create(MediaType.parse("text/plain"), brandName.isEmpty() ? "" : brandName);
+        RequestBody unitTypeBody = RequestBody.create(MediaType.parse("text/plain"), unitType);
+        RequestBody unitSizeBody = RequestBody.create(MediaType.parse("text/plain"), unitSize);
+        RequestBody rateBody = RequestBody.create(MediaType.parse("text/plain"), rate);
+        RequestBody qtyBody = RequestBody.create(MediaType.parse("text/plain"), qty);
+        RequestBody expiryBody = RequestBody.create(MediaType.parse("text/plain"), expiry.isEmpty() ? "" : expiry);
+
+        // Prepare image parts (optional: only if user selected new images)
+        MultipartBody.Part[] imageParts = prepareImageParts();
+
+        // Make API call
+        apiService.updateVendorProduct(
+                "Bearer " + token,
+                productId,
+                methodBody,
+                nameBody,
+                categoryBody,
+                brandBody,
+                unitTypeBody,
+                unitSizeBody,
+                rateBody,
+                expiryBody,
+                qtyBody,
+                imageParts).enqueue(new Callback<VendorProductResponse>() {
+                    @Override
+                    public void onResponse(@NonNull Call<VendorProductResponse> call,
+                            @NonNull Response<VendorProductResponse> response) {
+                        progressDialog.dismiss();
+                        if (response.isSuccessful() && response.body() != null) {
+                            Toast.makeText(VendorAddProductActivity.this, "Product updated successfully!",
+                                    Toast.LENGTH_SHORT).show();
+                            finish(); // Close activity and go back
+                        } else {
+                            Toast.makeText(VendorAddProductActivity.this, "Update failed: " + response.code(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<VendorProductResponse> call, @NonNull Throwable t) {
+                        progressDialog.dismiss();
+                        Toast.makeText(VendorAddProductActivity.this, "Network error: " + t.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    // ad change close
 
     private MultipartBody.Part[] prepareImageParts() {
         List<MultipartBody.Part> parts = new ArrayList<>();
@@ -425,7 +517,8 @@ public class VendorAddProductActivity extends AppCompatActivity {
     private File getFileFromUri(Uri uri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
-            if (inputStream == null) return null;
+            if (inputStream == null)
+                return null;
 
             String fileName = getFileName(uri);
             File file = new File(getCacheDir(), fileName);
@@ -507,4 +600,59 @@ public class VendorAddProductActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
+
+    // ad change start
+    private void loadProductDetails() {
+        String token = session.getToken();
+        progressDialog.setMessage("Loading product details...");
+        progressDialog.show();
+
+        apiService.getVendorProduct("Bearer " + token, productId).enqueue(new Callback<VendorProductResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<VendorProductResponse> call,
+                    @NonNull Response<VendorProductResponse> response) {
+                progressDialog.dismiss();
+                if (response.isSuccessful() && response.body() != null) {
+                    VendorProductResponse.Product product = response.body().product;
+
+                    // Fill the UI fields
+                    productNameInput.setText(product.product_name);
+                    brandNameInput.setText(product.brand_name);
+                    productQtyInput.setText(String.valueOf(product.quantity));
+                    productRateInput.setText(String.valueOf(product.product_rate));
+                    productExpiryInput.setText(product.product_expiry);
+
+                    // Set Category name in dropdown
+                    String categoryName = getCategoryName(product.category_id);
+                    productCategoryInput.setText(categoryName, false);
+
+                    // Set Weight/Unit in dropdown
+                    String weightTxt = product.unit_size + " " + product.unit_type;
+                    productWeightInput.setText(weightTxt, false);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<VendorProductResponse> call, @NonNull Throwable t) {
+                progressDialog.dismiss();
+                Toast.makeText(VendorAddProductActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // Helper to convert ID back to Name for the dropdown
+    private String getCategoryName(int id) {
+        if (id == 1)
+            return "Grains";
+        if (id == 2)
+            return "Vegetables";
+        if (id == 3)
+            return "Fruits";
+        if (id == 4)
+            return "Seeds";
+        if (id == 5)
+            return "Fertilizers";
+        return "Grains";
+    }
+    // ad change close
 }

@@ -63,7 +63,7 @@ public class ChatScreenActivity extends AppCompatActivity
         implements RealtimeSocketManager.SocketListener {
 
     private static final String TAG = "ChatScreen";
-    private static final String BASE_URL = "https://amplchat.agromarket.co.in/";
+    private static final String BASE_URL = "https://uatamplchat.agromarket.co.in/";
     private static final long DUPLICATE_BLOCK_WINDOW = 800;
 
     /* ================= STATE ================= */
@@ -123,8 +123,10 @@ public class ChatScreenActivity extends AppCompatActivity
         initViews();
 
         String chatName = getIntent().getStringExtra("name");
-        if (isCustomer) chatTitle.setVisibility(View.GONE);
-        else chatTitle.setText(chatName);
+        if (isCustomer)
+            chatTitle.setVisibility(View.GONE);
+        else
+            chatTitle.setText(chatName);
 
         setupChat();
         loadMessages();
@@ -166,7 +168,8 @@ public class ChatScreenActivity extends AppCompatActivity
     /* ================= CALLING ================= */
 
     private void startCall() {
-        if (VoiceCallActivity.isActive()) return;
+        if (VoiceCallActivity.isActive())
+            return;
 
         ApiService api = ApiClient.getClient().create(ApiService.class);
         Map<String, Integer> body = new HashMap<>();
@@ -176,9 +179,10 @@ public class ChatScreenActivity extends AppCompatActivity
                 .enqueue(new Callback<CallResponse>() {
                     @Override
                     public void onResponse(Call<CallResponse> call,
-                                           Response<CallResponse> response) {
+                            Response<CallResponse> response) {
 
-                        if (!response.isSuccessful() || response.body() == null) return;
+                        if (!response.isSuccessful() || response.body() == null)
+                            return;
 
                         CallResponse data = response.body();
 
@@ -192,8 +196,7 @@ public class ChatScreenActivity extends AppCompatActivity
                         VoiceCallActivity.startCalling(
                                 ChatScreenActivity.this,
                                 pendingCallId,
-                                true
-                        );
+                                true);
                     }
 
                     @Override
@@ -214,7 +217,8 @@ public class ChatScreenActivity extends AppCompatActivity
             i.putExtra("call_id", json.getInt("callId"));
             i.putExtra("caller_name", json.getString("callerName"));
             startActivity(i);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     @Override
@@ -223,15 +227,16 @@ public class ChatScreenActivity extends AppCompatActivity
             JSONObject json = new JSONObject(data);
             int callId = json.getInt("callId");
 
-            if (callId != pendingCallId) return;
-            if (!VoiceCallActivity.isActive()) return;
+            if (callId != pendingCallId)
+                return;
+            if (!VoiceCallActivity.isActive())
+                return;
 
             // DON'T start new activity - just trigger join in existing one
             VoiceCallActivity.joinChannel(
                     pendingChannel,
                     pendingToken,
-                    pendingUid
-            );
+                    pendingUid);
 
             // Clear pending state
             pendingCallId = 0;
@@ -269,7 +274,8 @@ public class ChatScreenActivity extends AppCompatActivity
     public void onMessageReceived(String data) {
         runOnUiThread(() -> {
             ChatMessage m = new Gson().fromJson(data, ChatMessage.class);
-            if (m.sender_id == session.getUserId()) return;
+            if (m.sender_id == session.getUserId())
+                return;
 
             MessageItem item = MessageItem.fromChatMessage(m, BASE_URL);
             messageList.add(item);
@@ -283,10 +289,12 @@ public class ChatScreenActivity extends AppCompatActivity
 
     private void sendTextMessage() {
         String msg = messageBox.getText().toString().trim();
-        if (msg.isEmpty()) return;
+        if (msg.isEmpty())
+            return;
 
         long now = System.currentTimeMillis();
-        if (msg.equals(lastSentText) && now - lastSentTime < DUPLICATE_BLOCK_WINDOW) return;
+        if (msg.equals(lastSentText) && now - lastSentTime < DUPLICATE_BLOCK_WINDOW)
+            return;
 
         lastSentText = msg;
         lastSentTime = now;
@@ -311,8 +319,13 @@ public class ChatScreenActivity extends AppCompatActivity
         ApiClient.getClient().create(ApiService.class)
                 .markSeen("Bearer " + session.getToken(), receiverId)
                 .enqueue(new Callback<Void>() {
-                    @Override public void onResponse(Call<Void> c, Response<Void> r) {}
-                    @Override public void onFailure(Call<Void> c, Throwable t) {}
+                    @Override
+                    public void onResponse(Call<Void> c, Response<Void> r) {
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> c, Throwable t) {
+                    }
                 });
     }
 
@@ -322,15 +335,15 @@ public class ChatScreenActivity extends AppCompatActivity
                 .enqueue(new Callback<MessageListResponse>() {
                     @Override
                     public void onResponse(Call<MessageListResponse> call,
-                                           Response<MessageListResponse> response) {
+                            Response<MessageListResponse> response) {
 
-                        if (!response.isSuccessful() || response.body() == null) return;
+                        if (!response.isSuccessful() || response.body() == null)
+                            return;
 
                         messageList.clear();
                         for (ChatMessage m : response.body().messages) {
                             messageList.add(
-                                    MessageItem.fromChatMessage(m, BASE_URL)
-                            );
+                                    MessageItem.fromChatMessage(m, BASE_URL));
                         }
 
                         chatAdapter.notifyDataSetChanged();
@@ -339,7 +352,9 @@ public class ChatScreenActivity extends AppCompatActivity
                         }
                     }
 
-                    @Override public void onFailure(Call<MessageListResponse> c, Throwable t) {}
+                    @Override
+                    public void onFailure(Call<MessageListResponse> c, Throwable t) {
+                    }
                 });
     }
 
@@ -360,7 +375,8 @@ public class ChatScreenActivity extends AppCompatActivity
 
         view.findViewById(R.id.sendSelected).setOnClickListener(v -> {
             for (ProductItem p : productList) {
-                if (p.isSelected && !p.isSkeleton) sendProduct(p);
+                if (p.isSelected && !p.isSkeleton)
+                    sendProduct(p);
             }
             dialog.dismiss();
         });
@@ -382,7 +398,8 @@ public class ChatScreenActivity extends AppCompatActivity
     }
 
     private void loadProducts(ProductAdapter adapter) {
-        if (productIsLoading || !productHasMore) return;
+        if (productIsLoading || !productHasMore)
+            return;
 
         productIsLoading = true;
         ApiClient.getClient().create(ApiService.class)
@@ -390,9 +407,10 @@ public class ChatScreenActivity extends AppCompatActivity
                 .enqueue(new Callback<ProductListResponse>() {
                     @Override
                     public void onResponse(Call<ProductListResponse> c,
-                                           Response<ProductListResponse> r) {
+                            Response<ProductListResponse> r) {
                         productIsLoading = false;
-                        if (!r.isSuccessful() || r.body() == null) return;
+                        if (!r.isSuccessful() || r.body() == null)
+                            return;
 
                         for (Product p : r.body().products) {
                             productList.add(ProductItem.fromApi(p, BASE_URL));
@@ -403,7 +421,8 @@ public class ChatScreenActivity extends AppCompatActivity
                         adapter.notifyDataSetChanged();
                     }
 
-                    @Override public void onFailure(Call<ProductListResponse> c, Throwable t) {
+                    @Override
+                    public void onFailure(Call<ProductListResponse> c, Throwable t) {
                         productIsLoading = false;
                     }
                 });
